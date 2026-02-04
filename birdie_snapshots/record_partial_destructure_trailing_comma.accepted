@@ -22,6 +22,7 @@ Module(
         Public,
         [
           FunctionParameter(
+            Span(12, 13),
             None,
             Named("x"),
             None,

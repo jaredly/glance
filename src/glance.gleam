@@ -245,6 +245,7 @@ pub type FnParameter {
 
 pub type FunctionParameter {
   FunctionParameter(
+    location: Span,
     label: Option(String),
     name: AssignmentName,
     type_: Option(Type),
@@ -1915,19 +1916,21 @@ fn fn_parameter(tokens: Tokens) -> Result(#(FnParameter, Tokens), Error) {
 fn function_parameter(
   tokens: Tokens,
 ) -> Result(#(FunctionParameter, Tokens), Error) {
-  use #(label, parameter, tokens) <- result.try(case tokens {
+  use #(label, parameter, location, tokens) <- result.try(case tokens {
     [] -> Error(UnexpectedEndOfInput)
-    [#(t.Name(label), _), #(t.DiscardName(name), _), ..tokens] -> {
-      Ok(#(Some(label), Discarded(name), tokens))
+    [#(t.Name(label), _), #(t.DiscardName(name), P(start)), ..tokens] -> {
+      let end = string_offset(start, name) + 1
+      Ok(#(Some(label), Discarded(name), Span(start, end), tokens))
     }
-    [#(t.DiscardName(name), _), ..tokens] -> {
-      Ok(#(None, Discarded(name), tokens))
+    [#(t.DiscardName(name), P(start)), ..tokens] -> {
+      let end = string_offset(start, name) + 1
+      Ok(#(None, Discarded(name), Span(start, end), tokens))
     }
-    [#(t.Name(label), _), #(t.Name(name), _), ..tokens] -> {
-      Ok(#(Some(label), Named(name), tokens))
+    [#(t.Name(label), _), #(t.Name(name), P(start)), ..tokens] -> {
+      Ok(#(Some(label), Named(name), span_from_string(start, name), tokens))
     }
-    [#(t.Name(name), _), ..tokens] -> {
-      Ok(#(None, Named(name), tokens))
+    [#(t.Name(name), P(start)), ..tokens] -> {
+      Ok(#(None, Named(name), span_from_string(start, name), tokens))
     }
     [#(token, position), ..] -> Error(UnexpectedToken(token, position))
   })
@@ -1935,7 +1938,7 @@ fn function_parameter(
   // Annotation
   use #(type_, tokens) <- result.try(optional_type_annotation(tokens))
 
-  Ok(#(FunctionParameter(label, parameter, type_), tokens))
+  Ok(#(FunctionParameter(location, label, parameter, type_), tokens))
 }
 
 fn const_definition(

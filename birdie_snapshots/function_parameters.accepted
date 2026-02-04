@@ -22,11 +22,13 @@ Module(
         Private,
         [
           FunctionParameter(
+            Span(8, 9),
             None,
             Named("a"),
             None,
           ),
           FunctionParameter(
+            Span(11, 12),
             None,
             Named("b"),
             Some(TupleType(
@@ -35,11 +37,13 @@ Module(
             )),
           ),
           FunctionParameter(
+            Span(21, 22),
             Some("c"),
             Named("d"),
             None,
           ),
           FunctionParameter(
+            Span(26, 27),
             Some("e"),
             Named("f"),
             Some(NamedType(
@@ -50,11 +54,13 @@ Module(
             )),
           ),
           FunctionParameter(
+            Span(34, 36),
             Some("h"),
             Discarded("i"),
             None,
           ),
           FunctionParameter(
+            Span(40, 42),
             Some("j"),
             Discarded("k"),
             Some(NamedType(
