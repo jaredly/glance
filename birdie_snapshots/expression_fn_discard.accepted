@@ -27,6 +27,7 @@ Module(
             Span(16, 31),
             [
               FnParameter(
+                Span(19, 24),
                 Discarded("x"),
                 Some(VariableType(
                   Span(23, 24),

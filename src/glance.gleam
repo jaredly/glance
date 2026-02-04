@@ -240,7 +240,7 @@ pub fn precedence(operator: BinaryOperator) -> Int {
 }
 
 pub type FnParameter {
-  FnParameter(name: AssignmentName, type_: Option(Type))
+  FnParameter(location: Span, name: AssignmentName, type_: Option(Type))
 }
 
 pub type FunctionParameter {
@@ -1893,19 +1893,23 @@ fn list(
 }
 
 fn fn_parameter(tokens: Tokens) -> Result(#(FnParameter, Tokens), Error) {
-  use #(name, tokens) <- result.try(case tokens {
-    [#(t.Name(name), _), ..tokens] -> {
-      Ok(#(Named(name), tokens))
+  use #(name, start, end, tokens) <- result.try(case tokens {
+    [#(t.Name(name), P(start)), ..tokens] -> {
+      Ok(#(Named(name), start, string_offset(start, name), tokens))
     }
-    [#(t.DiscardName(name), _), ..tokens] -> {
-      Ok(#(Discarded(name), tokens))
+    [#(t.DiscardName(name), P(start)), ..tokens] -> {
+      Ok(#(Discarded(name), start, string_offset(start, name) + 1, tokens))
     }
     [#(other, position), ..] -> Error(UnexpectedToken(other, position))
     [] -> Error(UnexpectedEndOfInput)
   })
 
   use #(type_, tokens) <- result.try(optional_type_annotation(tokens))
-  Ok(#(FnParameter(name, type_), tokens))
+  let end = case type_ {
+    Some(type_) -> type_.location.end
+    None -> end
+  }
+  Ok(#(FnParameter(Span(start, end), name, type_), tokens))
 }
 
 fn function_parameter(
